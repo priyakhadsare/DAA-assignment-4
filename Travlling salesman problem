@@ -1,0 +1,158 @@
+#include<iostream>
+#include<fstream>
+#include<string>
+#include <algorithm> 
+#include<vector>
+using namespace std;
+
+struct point {
+	float x;
+	float y;
+	char name[20];
+	char signal;
+};
+
+float dist(point p, point p1) {
+	return sqrt((p.x - p1.x)*(p.x - p1.x) + (p.y - p1.y)*(p.y - p1.y));
+}
+
+void swap(point *xp, point *yp) {
+	point temp = *xp;
+	*xp = *yp;
+	*yp = temp;
+}
+
+int partition(point p[], int low, int high) {
+
+	int pivot = p[high].signal;
+	int i = (low - 1);
+
+	for (int j = low; j <= high - 1; j++) {
+		if (p[j].signal <= pivot) {
+			i++;
+			swap(&p[i], &p[j]);
+		}
+	}
+	swap(&p[i + 1], &p[high]);
+	return (i + 1);
+}
+
+void quickSort(point p[], int low, int high){
+
+	if (low < high){
+		int pi = partition(p, low, high);
+
+		quickSort(p, low, pi - 1);
+		quickSort(p, pi + 1, high);
+	}
+
+}
+
+
+double bruteforce(point P[], int n, int c, int ind[], int red[]){
+
+	double sum = 0;
+	if (c!=0 && c!=n-1){
+		sum += dist(P[0], P[ind[0]]);
+		for (int i = 0; i < n - c - 2; i++) sum += dist(P[ind[i]], P[ind[i + 1]]);
+		sum += dist(P[ind[n - c - 2]], P[red[0]]);
+		for (int i = 0; i < c - 1; i++)	sum += dist(P[red[i]], P[red[i + 1]]);
+		sum += dist(P[red[c - 1]], P[0]);
+	}
+
+	else if (c==0){
+		sum += dist(P[0], P[ind[0]]);
+		for (int i = 0; i < n - c - 2; i++) sum += dist(P[ind[i]], P[ind[i + 1]]);
+		sum += dist(P[ind[n -c - 2]], P[0]);
+	}
+	else if (c == n - 1){
+		sum += dist(P[0], P[red[0]]);
+		for (int i = 0; i < c - 1; i++) sum += dist(P[red[i]], P[red[i + 1]]);
+		sum += dist(P[red[c - 1]], P[0]);
+	}
+	return sum;
+}
+
+void indexing(point p[], int n, int c, vector<string> &o){
+	int* index = new int[n - c];
+	int* redindex = new int[c];
+
+	double sum = 0 , min = FLT_MAX;
+
+	for (int i = 1; i < n - c; i++) index[i - 1] = i;
+
+	int j = 0;
+	for (int i = n - c; i < n; i++) redindex[j++] = i;
+
+	
+	do{
+		sum = bruteforce(p, n, c, index, redindex);
+
+		if (sum < min){
+			min = sum;
+			o.~vector();
+			o.push_back(p[0].name);
+			for (int i = 0; i < n - c - 1; i++)
+				o.push_back(p[index[i]].name);
+			for (int i = 0; i < c; i++)
+				o.push_back(p[redindex[i]].name);
+			o.push_back(p[0].name);
+		}
+	} while (next_permutation(index, index + n - c - 1) || next_permutation(redindex, redindex + c));
+}
+
+void main() {
+
+	vector<string> output;
+	ifstream in;
+	int number_of_input = 0;
+	point* a = NULL;
+	in.open("tsp.map");
+
+	if (!in)cout << "Cannot find it" << endl;
+	else{
+		in >> number_of_input;
+		a = new point[number_of_input];
+		int i = 0;
+		while (!in.eof()) {
+			in >> a[i].name >> a[i].x >> a[i].y;
+			i++;
+		}
+	}
+	in.clear();
+	in.close();
+
+	int count = 0;
+
+	a[0].signal = 'G';
+	for (int i = 1; i < number_of_input; i++) {
+		if (a[i].name[0] == 'R'){
+			a[i].signal = 'R';
+			count++;
+		}
+		else
+			a[i].signal = 'B';
+	}
+
+	if (number_of_input - count - 1 > 10 || count > 10){
+
+		cout << "Please reduce the cities' number, ensure it cannot more than 11" << ',' << 
+			"since current machine power cannot handle too many permutations. " << endl;
+		system("pause");
+		exit(0);
+	}
+	
+	if (count!=number_of_input-1)
+		quickSort(a, 1, number_of_input - 1);
+
+	indexing(a, number_of_input, count, output);
+
+	ofstream out;
+	out.open("solution.txt");
+
+	for (size_t i = 0; i < output.size(); i++)
+		out << output[i] << '\n';
+
+	out.close();
+	output.clear();
+	
