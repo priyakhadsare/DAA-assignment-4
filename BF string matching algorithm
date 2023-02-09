@@ -1,0 +1,61 @@
+#include <iostream>
+#include <string>
+#include <cstdlib>
+
+using namespace std;
+
+
+int sLength = 0;
+int count = 0;
+int charReset = 0;
+int stop = 0;
+int maxValue = 0;
+string inString = "";
+static const char charSet[] = //define character set to draw from
+"0123456789"
+"!@#$%^&*"
+"abcdefghijklmnopqrstuvwxyz"
+"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+int stringLength = sizeof(charSet) - 1;
+
+
+char genChars()
+{
+        return charSet[count]; //Get character and send to genChars()
+}
+
+int main()
+{
+    cout << "Length of string to match?" << endl;
+    cin >> sLength;
+    cout << "What string do you want to match?" << endl;
+    cin >> inString;
+    string sMatch(sLength, ' ');
+    while(true)
+    {
+        for (int y = 0; y < sLength; y++)
+        {
+            sMatch[y] = genChars(); //get the characters
+            cout << sMatch[y];
+
+            if (count == 74)
+            {
+                charReset + 1;
+                count = 0;
+            }
+            if (count == 2147000000)
+            {
+                count == 0;
+                maxValue++;
+            }
+        }
+        count++;
+        if (sMatch == inString) //check for string match
+        {
+            cout << endl;
+            cout << "It took " << count + (charReset * 74) + (maxValue*2147000000) << " randomly generated characters to match the strings." << endl;
+            cin >> stop;
+        }
+        cout << endl;
+    }
+}
